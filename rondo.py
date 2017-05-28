@@ -6,11 +6,13 @@ import simpy
 def source(env, number, interval, rondo, rondo_quarter=5.00):
     """Source generates cars randomly"""
     for i in range(number):
-        j = random.choice([0,1,2,3]) # wybor trasy z ktorej samochod przyjezdza
-        c = car(env, 'Car%02d%02d' % (i,j), rondo, rondo_quarter, j)
-        env.process(c)
+        c1 = car(env, 'Car01_%02d' % i, rondo, rondo_quarter)
+        c2 = car(env, 'Car02_%02d' % i, rondo, rondo_quarter)
+        c3 = car(env, 'Car03_%02d' % i, rondo, rondo_quarter)
+        c4 = car(env, 'Car04_%02d' % i, rondo, rondo_quarter)
+        env.process(random.choice([c1,c2,c3,c4]))
         # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania
-        t = 5
+        t = 2
         yield env.timeout(t)
 
 
