@@ -4,20 +4,17 @@ import simpy
 
 # source generates new cars randomly
 def source(env, number, interval, rondo, rondo_quarter=5.00):
-    """Source generates cars randomly"""
-    for i in range(number):
-        c1 = car(env, 'Car01_%02d' % i, rondo, rondo_quarter)
-        c2 = car(env, 'Car02_%02d' % i, rondo, rondo_quarter)
-        c3 = car(env, 'Car03_%02d' % i, rondo, rondo_quarter)
-        c4 = car(env, 'Car04_%02d' % i, rondo, rondo_quarter)
-        env.process(random.choice([c1,c2,c3,c4]))
-        # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania
-        t = 2
+    for i in range(number):  # liczba samochodow w symulacji
+        j = random.choice([0,1,2,3]) # wybor trasy z ktorej samochod przyjezdza
+        c = car(env, 'Car%02d%02d' % (i,j), rondo, rondo_quarter, j)
+        env.process(c)
+        # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
+        t = 5
         yield env.timeout(t)
 
 
-def car(env, name, rondo, rondo_quarter, road):
-    """car arrives, is served and leaves."""
+def car(env, name, rondo, rondo_quarter):
+    """car arrives, is served and leaves"""
     arrive = env.now
     print('%7.4f %s: Here I am' % (arrive, name))
 
@@ -27,11 +24,10 @@ def car(env, name, rondo, rondo_quarter, road):
 
         # We got to the rondo
         print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
-        i = random.choice([1, 2, 3, 4])
-        tib = i * rondo_quarter  # random.expovariate(1.0 / time_in_bank)
-        yield env.timeout(tib)
+        i = random.choice([1, 2, 3, 4]) # dla kazdego samochodu na rondzie wybierany jest losowy zjazd z rona
+        tir = i * rondo_quarter + wait  # random.expovariate(1.0 / time_in_bank)
+        yield env.timeout(tir)
         print('%7.4f %s: Finished' % (env.now, name))
-        # print(time_in_bank)
 
 
 # Setup and start the simulation
@@ -44,7 +40,7 @@ random.seed(random_seed)
 env = simpy.Environment()
 
 # Start processes and run
-rondo = simpy.Resource(env, capacity=2)
+rondo = simpy.Resource(env, capacity=2) # ile samochodow moze naraz znajdowac sie na rondzie
 env.process(source(env,
                    number=new_cars,
                    interval=interval_cars,
