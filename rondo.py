@@ -102,5 +102,3 @@ env.process(source_south(env,
                          rondo=rondo,
                          rondo_quarter=6))
 env.run()
-
-env.run()
