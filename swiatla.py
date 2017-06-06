@@ -75,39 +75,41 @@ interval_south = 10.0
 
 capacity = 20  # How many cars can enter the intersection simultaneously
 
-lights = [20,40]  # red, green
-
+lights1 = [20,40]  # red, green
+lights2 = [40,20]  # red, green
 # set up the environment
 print('Intersection with lights')
 random.seed(random_seed)
 env = simpy.Environment()
 
 # Start processes and run
-intersection = simpy.Resource(env, capacity=1)
+intersection = simpy.Resource(env, capacity=capacity)
 env.process(source_east(env,
                         number=cars_east,
                         interval=interval_east,
                         intersection=intersection,
-                        lights=lights))
+                        lights=lights1))
 
 env.process(source_west(env,
                         number=cars_west,
                         interval=interval_west,
                         intersection=intersection,
-                        lights=lights))
+                        lights=lights1))
 
 env.process(source_north(env,
                          number=cars_north,
                          interval=interval_north,
                          intersection=intersection,
-                        lights=lights))
+                        lights=lights2))
 
 env.process(source_south(env,
                          number=cars_south,
                          interval=interval_south,
                          intersection=intersection,
-                        lights=lights))
+                        lights=lights2))
 env.run()
+
+
 
 
 
