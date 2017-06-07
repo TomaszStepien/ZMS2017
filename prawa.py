@@ -6,20 +6,18 @@ import pandas as pd
 # import numpy
 
 # source generates new cars randomly
-# and we need 4 of them because 4 directions of arrival are possible
 def source(env, number, interval, intersection, times, origin):
     for i in range(number):  # number of cars coming from this direction
-        c = car(env, 'Car%02d%s' % (i,origin), intersection, times)
+        c = car(env, 'Car%02d%s' % (i, origin), intersection, times, origin)
         env.process(c)
         # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
         t = 5
         yield env.timeout(t)
-        times['origin'].append(origin)
 
-def car(env, name, intersection, times):
+
+def car(env, name, intersection, times, origin):
     """car arrives, is served and leaves"""
     arrive = env.now
-    times['arrival_time'].append(arrive)
     print('%7.4f %s: Here I am' % (arrive, name))
 
     with intersection.request() as req:
@@ -28,12 +26,15 @@ def car(env, name, intersection, times):
 
         # We got to the intersection
         yield env.timeout(wait)
-        times['waiting_time'].append(wait)
         print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
         tir = 5.00  # random.expovariate(1.0 / time_in_bank)
         yield env.timeout(tir)
-        times['total_time'].append(tir + wait)
         print('%7.4f %s: Finished' % (env.now, name))
+
+    times['total_time'].append(wait + tir)
+    times['waiting_time'].append(wait)
+    times['arrival_time'].append(arrive)
+    times['origin'].append(origin)
 
 
 # set parameters
