@@ -7,41 +7,14 @@ import pandas as pd
 
 # source generates new cars randomly
 # and we need 4 of them because 4 directions of arrival are possible
-def source_east(env, number, interval, intersection, times):
+def source(env, number, interval, intersection, times, origin):
     for i in range(number):  # number of cars coming from this direction
-        c = car(env, 'Car%02dEast' % i, intersection, times)
+        c = car(env, 'Car%02d%s' % (i,origin), intersection, times)
         env.process(c)
         # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
         t = 5
         yield env.timeout(t)
-
-
-def source_west(env, number, interval, intersection, times):
-    for i in range(number):
-        c = car(env, 'Car%02dWest' % i, intersection, times)
-        env.process(c)
-        # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
-        t = 5
-        yield env.timeout(t)
-
-
-def source_north(env, number, interval, intersection, times):
-    for i in range(number):
-        c = car(env, 'Car%02dNorth' % i, intersection, times)
-        env.process(c)
-        # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
-        t = 5
-        yield env.timeout(t)
-
-
-def source_south(env, number, interval, intersection, times):
-    for i in range(number):
-        c = car(env, 'Car%02dSouth' % i, intersection, times)
-        env.process(c)
-        # t = random.expovariate(1.0 / interval)  # czestotliwosc pojawiania sie aut
-        t = 5
-        yield env.timeout(t)
-
+        times['origin'].append(origin)
 
 def car(env, name, intersection, times):
     """car arrives, is served and leaves"""
@@ -66,17 +39,13 @@ def car(env, name, intersection, times):
 # set parameters
 random_seed = 2137
 
-cars_east = 5  # how many cars coming from each direction
-cars_west = 5
-cars_north = 5
-cars_south = 5
+# for each origin there are: name, number of cars and interval
+origins = (('east', 5, 10),
+           ('west', 5, 10),
+           ('north', 5, 10),
+           ('south', 5, 10))
 
-interval_east = 10.0  # Generate new cars roughly every x seconds
-interval_west = 10.0
-interval_north = 10.0
-interval_south = 10.0
-
-capacity = 20  # How many cars can enter the intersection simultaneously
+capacity = 2  # How many cars can enter the intersection simultaneously
 
 # set up the environment
 print('Intersection with no lights')
@@ -84,36 +53,21 @@ random.seed(random_seed)
 env = simpy.Environment()
 times = {'waiting_time': [],
          'total_time': [],
-         'arrival_time': []}
+         'arrival_time': [],
+         'origin': []}
 
 # Start processes and run
 intersection = simpy.Resource(env, capacity=capacity)
-env.process(source_east(env,
-                        number=cars_east,
-                        interval=interval_east,
-                        intersection=intersection,
-                        times=times))
+for e in origins:
+    env.process(source(env,
+                       number=e[1],
+                       interval=e[2],
+                       intersection=intersection,
+                       times=times,
+                       origin=e[0]))
 
-env.process(source_west(env,
-                        number=cars_west,
-                        interval=interval_west,
-                        intersection=intersection,
-                        times=times))
-
-env.process(source_north(env,
-                         number=cars_north,
-                         interval=interval_north,
-                         intersection=intersection,
-                         times=times))
-
-env.process(source_south(env,
-                         number=cars_south,
-                         interval=interval_south,
-                         intersection=intersection,
-                         times=times))
 env.run()
 
 times = pd.DataFrame(times)
 
 print(times)
-
