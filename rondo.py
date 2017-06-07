@@ -2,45 +2,19 @@ import random
 import simpy
 import pandas as pd
 
+
 # import numpy
 
 # source generates new cars randomly
 # and we need 4 of them because 4 directions of arrival are possible
-def source_east(env, number, interval, rondo, times, rondo_quarter=5.00):
+def source(env, number, interval, rondo, times, origin, rondo_quarter=5.00):
     for i in range(number):  # number of cars coming from this direction
-        c = car(env, 'Car%02dEast' % i, rondo, times, rondo_quarter)
+        c = car(env, 'Car%02d%s' % (i, origin), rondo, times, rondo_quarter)
         env.process(c)
         # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
         t = 5
         yield env.timeout(t)
-
-
-def source_west(env, number, interval, rondo, times, rondo_quarter=5.00):
-    for i in range(number):
-        c = car(env, 'Car%02dWest' % i, rondo, times, rondo_quarter)
-        env.process(c)
-        # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
-        t = 5
-        yield env.timeout(t)
-
-
-def source_north(env, number, interval, rondo, times, rondo_quarter=5.00):
-    for i in range(number):
-        c = car(env, 'Car%02dNorth' % i, rondo, times, rondo_quarter)
-        env.process(c)
-        # t = random.expovariate(1.0 / interval) # czestotliwosc pojawiania sie aut
-        t = 5
-        yield env.timeout(t)
-
-
-def source_south(env, number, interval, rondo, times, rondo_quarter=5.00):
-    for i in range(number):
-        c = car(env, 'Car%02dSouth' % i, rondo, times, rondo_quarter)
-        env.process(c)
-        # t = random.expovariate(1.0 / interval)  # czestotliwosc pojawiania sie aut
-        t = 5
-        yield env.timeout(t)
-
+        times['origin'].append(origin)
 
 def car(env, name, rondo, times, rondo_quarter):
     """car arrives, is served and leaves"""
@@ -59,62 +33,48 @@ def car(env, name, rondo, times, rondo_quarter):
         i = random.choice([1, 2, 3, 4])  # for each car a random exit from the roundabout is chosen
         tir = i * rondo_quarter  # random.expovariate(1.0 / time_in_bank)
         yield env.timeout(tir)
-        times['total_time'].append(wait+tir)
+        times['total_time'].append(wait + tir)
         print('%7.4f %s: Finished' % (env.now, name))
 
 
 # set parameters
 random_seed = 2137
 
-cars_east = 5  # how many cars coming from each direction
-cars_west = 5
-cars_north = 5
-cars_south = 5
+# for each origin there are: name, number of cars and interval
+origins = [['east', 5, 10],
+           ['west', 5, 10],
+           ['north', 5, 10],
+           ['south', 5, 10]]
 
-interval_east = 10.0  # Generate new cars roughly every x seconds
-interval_west = 10.0
-interval_north = 10.0
-interval_south = 10.0
-
-capacity = 4  # How many cars can enter the roundabout simultaneously
+size = 13  # the circumference of the roundabout - the bigger it is the more cars it can fit
+#  but also the longer it takes to travel through it
+capacity = size // 3  # How many cars can enter the roundabout simultaneously
+rondo_quarter = size // 4  # how many seconds does it take to drive through 1/4 of roundabout
 
 # set up the environment
 print('RONDO')
 random.seed(random_seed)
 env = simpy.Environment()
-times = {'waiting_time':[],
+times = {'waiting_time': [],
          'total_time': [],
-         'arrival_time':[]}
+         'arrival_time': [],
+         'origin': []}
 
 # Start processes and run
 rondo = simpy.Resource(env, capacity=capacity)
-env.process(source_east(env,
-                        number=cars_east,
-                        interval=interval_east,
-                        rondo=rondo,
-                        rondo_quarter=6,
-                        times=times))
-env.process(source_west(env,
-                        number=cars_west,
-                        interval=interval_west,
-                        rondo=rondo,
-                        rondo_quarter=6,
-                        times=times))
-env.process(source_north(env,
-                         number=cars_north,
-                         interval=interval_north,
-                         rondo=rondo,
-                         rondo_quarter=6,
-                         times=times))
-env.process(source_south(env,
-                         number=cars_south,
-                         interval=interval_south,
-                         rondo=rondo,
-                         rondo_quarter=6,
-                         times=times))
-env.run()
 
+for e in origins:
+    env.process(source(env,
+                       number=e[1],
+                       interval=e[2],
+                       rondo=rondo,
+                       rondo_quarter=rondo_quarter,
+                       times=times,
+                       origin=e[0]))
+
+env.run()
 
 times = pd.DataFrame(times)
 
 print(times)
+
