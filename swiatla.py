@@ -31,7 +31,7 @@ def car(env, name, intersection, lights, times, origin):
         # We got to the intersection
         yield env.timeout(wait)
         # print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
-        tir = random.uniform(3,7)
+        tir = random.uniform(7,14)
         yield env.timeout(tir)
         # print('%7.4f %s: Finished' % (env.now, name))
 
@@ -53,9 +53,9 @@ times = {'waiting_time': [],
          'arrival_time': [],
          'origin': []}
 
-capacity = 5  # How many cars can enter the intersection simultaneously
+capacity = 4  # How many cars can enter the intersection simultaneously
 
-lights = (20, 40)  # red, green
+lights = (30, 60)  # red, green
 
 # set up the environment
 print('Intersection with lights')
