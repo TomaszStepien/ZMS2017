@@ -50,7 +50,7 @@ times = {'waiting_time': [],
 
 size = 1000  # the circumference of the roundabout - the bigger it is the more cars can enter
 #  but also the longer it takes to travel through it
-capacity = size // 3  # How many cars can enter the roundabout simultaneously
+capacity = size // 250  # How many cars can enter the roundabout simultaneously
 rondo_quarter = size // 4  # how many seconds does it take to drive through 1/4 of roundabout
 
 # set up the environment
